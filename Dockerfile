@@ -1,5 +1,7 @@
 # 1. Base Setup
 FROM oven/bun:alpine AS base
+# Instalar bash porque Dokploy lo necesita para ejecutar sus procesos internos
+RUN apk add --no-cache bash
 WORKDIR /app
 
 # 2. Instalación de dependencias
