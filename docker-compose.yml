@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    container_name: emprendeia_api
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - REDIS_URL=redis://redis:6379
+    env_file:
+      - .env
+    # Seguridad: bloquea elevación de privilegios en el contenedor
+    security_opt:
+      - no-new-privileges:true
+    # Seguridad y estabilidad: límite de memoria para prevenir consumo completo de RAM en host
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:alpine
+    container_name: emprendeia_redis
+    restart: always
+    command: redis-server --appendonly yes
+    # Seguridad: NO declaramos 'ports: - "6379:6379"'.
+    # Esto aísla a Redis, haciéndolo accesible ÚNICAMENTE de forma interna
+    # a la red Docker para el servicio 'api' (por seguridad, no exponer DB publicamente)
+    volumes:
+      - redis_data_prod:/data
+
+volumes:
+  redis_data_prod:
