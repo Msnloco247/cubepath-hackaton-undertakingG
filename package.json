@@ -1,0 +1,21 @@
+{
+  "name": "cubepath-hackaton-undertakingg",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "bun index.ts",
+    "dev": "bun --watch index.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@openrouter/sdk": "^0.9.11",
+    "hono": "^4.12.8",
+    "ioredis": "^5.10.1"
+  }
+}
