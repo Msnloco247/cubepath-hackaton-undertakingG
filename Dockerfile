@@ -4,6 +4,8 @@ FROM oven/bun:alpine AS base
 RUN apk add --no-cache bash
 WORKDIR /app
 
+# 2. Instalación de dependencias
+FROM base AS install
 # Instalamos dependencias de producción
 COPY package.json bun.lock* ./
 RUN bun install --production
