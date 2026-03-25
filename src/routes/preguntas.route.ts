@@ -1,5 +1,8 @@
-// src/routes/preguntas.route.ts
-// Endpoints separados para análisis de emprendimientos
+/**
+ * @module PreguntasRoutes
+ * @description Define los endpoints para el análisis de emprendimientos.
+ * Incluye lógica de validación de temas, generación de FODA, productos y presupuestos.
+ */
 
 import { Hono } from "hono";
 import { validatePreguntasMiddleware } from "../middleware/validate.middleware.ts";
@@ -19,7 +22,12 @@ type Variables = {
 
 const preguntasRoute = new Hono<{ Variables: Variables }>();
 
-// Función auxiliar para verificar el tema
+/**
+ * Verifica si el tema es válido y aborta la petición con un error 400 si no lo es.
+ * @param c - Contexto de Hono.
+ * @param datos - Datos validados del negocio.
+ * @returns Una respuesta JSON de error o null si es válido.
+ */
 async function verificarOAbortar(c: any, datos: PreguntasRequest) {
   const validacion = await verificarTemaEmprendimiento(datos);
   if (!validacion.esValido) {

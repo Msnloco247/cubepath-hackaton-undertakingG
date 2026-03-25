@@ -1,5 +1,8 @@
-// src/middleware/rateLimit.middleware.ts
-// Rate limiting escalable (Redis + Fallback en memoria por IP)
+/**
+ * @module RateLimitMiddleware
+ * @description Implementación de limitación de tasa (Rate Limiting) con estrategia híbrida.
+ * Utiliza Redis para una limitación distribuida y escala a un Map en memoria como fallback si Redis no está disponible.
+ */
 
 import type { MiddlewareHandler } from "hono";
 import { config } from "../config/env.ts";
@@ -20,12 +23,22 @@ setInterval(() => {
     }
 }, 5 * 60 * 1000);
 
+/**
+ * @description Middleware de Hono que aplica el límite de peticiones basado en la IP del cliente.
+ * 
+ * Flujo:
+ * 1. Intenta usar Redis (Distribuido).
+ * 2. Si Redis falla o no está conectado, usa un Map local en memoria (Fallback).
+ * 3. Inyecta cabeceras estándar de RateLimit (Limit, Remaining, Reset, Retry-After).
+ */
 export const rateLimitMiddleware: MiddlewareHandler = async (c, next) => {
     const { max, windowMs } = config.rateLimit;
     const now = Date.now();
 
-    // Obtener IP del cliente
+    // Obtener IP del cliente de forma más robusta
+    // NOTA: En producción, asegúrate de que tu proxy (Nginx/Dokploy) sobreescriba X-Forwarded-For
     const ip =
+        c.req.header("cf-connecting-ip") ?? // Cloudflare
         c.req.header("x-forwarded-for")?.split(",")[0]?.trim() ??
         c.req.header("x-real-ip") ??
         "unknown";

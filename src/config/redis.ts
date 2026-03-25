@@ -1,5 +1,8 @@
-// src/config/redis.ts
-// Instancia del cliente de Redis para caché distribuido
+/**
+ * @module ConfigRedis
+ * @description Configuración y gestión del cliente Redis (ioredis).
+ * Incluye lógica de reconexión con backoff y gestión de estado para fallback automático.
+ */
 
 import { Redis } from "ioredis";
 import { config } from "./env.ts";
@@ -31,4 +34,8 @@ redisClient.connect().catch(() => {
     console.warn("⚠️ No se pudo conectar a Redis. Se usará el fallback en memoria para Rate Limiting.");
 });
 
+/**
+ * Devuelve el estado actual de la conexión con Redis.
+ * @returns true si Redis está listo para recibir comandos.
+ */
 export const getRedisStatus = () => isRedisConnected;

@@ -1,15 +1,16 @@
-// src/router.ts
-// Router central — registra todas las rutas de la API
+/**
+ * @module MainRouter
+ * @description Orquestador central de rutas. Registra los módulos de salud, preguntas y la información base de la API.
+ */
 
 import { Hono } from "hono";
-import { corsMiddleware } from "./middleware/cors.middleware.ts";
 import healthRoute from "./routes/health.route.ts";
 import preguntasRoute from "./routes/preguntas.route.ts";
 
 const router = new Hono();
 
 // ─── Middleware global ────────────────────────────────────────────────────────
-router.use("*", corsMiddleware);
+// (El CORS ahora se gestiona centralizadamente en index.ts)
 
 // ─── Rutas ────────────────────────────────────────────────────────────────────
 router.route("/health", healthRoute);
@@ -39,7 +40,10 @@ router.get("/", (c) => {
         descripcion: "Genera el paso a paso del emprendimiento con un presupuesto estimado en USD."
       }
     },
-    timestamp: new Date().toISOString(),
+    ...(process.env["NODE_ENV"] !== "production" && {
+      modelo: "IA Generativa via OpenRouter",
+      timestamp: new Date().toISOString()
+    })
   });
 });
 

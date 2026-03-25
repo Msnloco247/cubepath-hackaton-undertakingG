@@ -1,5 +1,8 @@
-// src/middleware/validate.middleware.ts
-// Middleware de validación y sanitización de requests
+/**
+ * @module ValidationMiddleware
+ * @description Middleware encargado de la validación sintáctica, estructural y sanitización de las peticiones entrantes.
+ * Asegura que los datos respeten los límites de longitud y tipos antes de ser procesados por la IA.
+ */
 
 import type { Context, Next } from "hono";
 import type { PreguntasRequest } from "../types/index.ts";
@@ -14,7 +17,11 @@ const MIN_PREGUNTAS = 1;
 const MAX_LONGITUD_PREGUNTA = 500;
 const MAX_LONGITUD_CONTEXTO = 1000;
 
-// Sanitiza un string eliminando caracteres peligrosos
+/**
+ * Sanitiza un string eliminando caracteres de control invisibles y limitando su longitud.
+ * @param texto - El texto original del usuario.
+ * @returns El texto limpio y recortado.
+ */
 function sanitizarTexto(texto: string): string {
     return texto
         .trim()
@@ -22,6 +29,11 @@ function sanitizarTexto(texto: string): string {
         .slice(0, MAX_LONGITUD_PREGUNTA);
 }
 
+/**
+ * Middleware principal de validación para los endpoints de preguntas.
+ * Verifica el Content-Type, la estructura JSON y las reglas de negocio (min/max de respuestas).
+ * Adjunta los datos sanitizados al contexto de Hono como 'preguntasValidadas'.
+ */
 export const validatePreguntasMiddleware = async (
     c: Context<{ Variables: Variables }>,
     next: Next

@@ -5,10 +5,13 @@
   "private": true,
   "scripts": {
     "start": "bun index.ts",
-    "dev": "bun --watch index.ts"
+    "dev": "bun --watch index.ts",
+    "docs": "typedoc"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/node": "^25.5.0",
+    "typedoc": "^0.28.18"
   },
   "peerDependencies": {
     "typescript": "^5"

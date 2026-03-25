@@ -15,7 +15,7 @@ healthRoute.get("/", (c) => {
         estado: "ok",
         uptime: `${uptimeSeconds}s`,
         timestamp: new Date().toISOString(),
-        entorno: process.env["NODE_ENV"] ?? "development",
+        ...(process.env["NODE_ENV"] !== "production" && { entorno: process.env["NODE_ENV"] ?? "development" }),
     });
 });
 

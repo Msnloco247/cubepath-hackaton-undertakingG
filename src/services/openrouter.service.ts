@@ -1,5 +1,8 @@
-// src/services/openrouter.service.ts
-// Servicio de integración con IA usando el SDK Oficial
+/**
+ * @module OpenRouterService
+ * @description Servicio para la integración con modelos de IA a través de OpenRouter.
+ * Maneja reintentos, validación de esquemas JSON y formateo de mensajes.
+ */
 
 import { config } from "../config/env.ts";
 import { OpenRouterError } from "../types/errors.ts";
@@ -33,6 +36,14 @@ import {
 
 // ─── Lógica central de API IA ─────────────────────────────────────────────────
 
+/**
+ * Realiza una llamada a la API de OpenRouter con lógica de reintento integrada.
+ * @param mensajesOriginales - Lista de mensajes para el chat.
+ * @param endpointName - Nombre del endpoint para logs y gestión de errores.
+ * @param extraxtorJsonInfo - Función que valida si el JSON devuelto tiene la forma esperada.
+ * @param overrideModel - Opcional, modelo específico a usar en lugar del de por defecto.
+ * @returns Un objeto con el JSON parseado y el identificador del modelo usado.
+ */
 async function llamarOpenRouterConReintento(
   mensajesOriginales: OpenRouterMessage[],
   endpointName: string,
@@ -95,6 +106,11 @@ async function llamarOpenRouterConReintento(
 
 // ─── Funciones Públicas ───────────────────────────────────────────────────────
 
+/**
+ * Verifica si el tema proporcionado por el usuario es un emprendimiento válido.
+ * @param datos - Datos del negocio enviados por el cliente.
+ * @returns Promesa con el resultado de la validación (booleano y razón).
+ */
 export async function verificarTemaEmprendimiento(
   datos: PreguntasRequest
 ): Promise<VerificacionTema> {
@@ -123,6 +139,10 @@ export async function verificarTemaEmprendimiento(
   }
 }
 
+/**
+ * Genera el análisis FODA y el análisis geográfico de la zona.
+ * @param datos - Datos del negocio.
+ */
 export async function generarFodaYZona(
   datos: PreguntasRequest
 ): Promise<{ analisisFODA: AnalisisFODA; analisisZona: AnalisisZona; modelo: string }> {
@@ -139,6 +159,10 @@ export async function generarFodaYZona(
   return { analisisFODA: parsed.analisisFODA, analisisZona: parsed.analisisZona, modelo };
 }
 
+/**
+ * Genera el análisis profundo del producto y las estrategias a corto/mediano/largo plazo.
+ * @param datos - Datos del negocio.
+ */
 export async function generarProductoYEstrategia(
   datos: PreguntasRequest
 ): Promise<{ analisisProducto: AnalisisProducto; estrategiasClave: EstrategiasClave; modelo: string }> {
@@ -155,6 +179,11 @@ export async function generarProductoYEstrategia(
   return { analisisProducto: parsed.analisisProducto, estrategiasClave: parsed.estrategiasClave, modelo };
 }
 
+/**
+ * Genera los pasos detallados de gestación y operación junto con el presupuesto total.
+ * Realiza llamadas paralelas para optimizar tiempos de respuesta.
+ * @param datos - Datos del negocio.
+ */
 export async function generarPasosYPresupuesto(
   datos: PreguntasRequest
 ): Promise<{ analisisPasos: AnalisisPasos; modelo: string }> {
@@ -193,14 +222,23 @@ export async function generarPasosYPresupuesto(
   };
 }
 
+/**
+ * Construye el string de entrada final para la IA inyectando marcas de seguridad <user_input>.
+ * @param datos - Dataset de entrada.
+ * @internal
+ */
 function armarContenidoUsuario(datos: PreguntasRequest): string {
+  const sanitizarTag = (txt: string) => txt.replace(/<\/user_input>/g, "[REDACTED_TAG]").replace(/<user_input>/g, "[REDACTED_TAG]");
+  
   return [
-    `Instrucciones: Toma los siguientes datos y genera el análisis JSON solicitado. Piensa sobre el impacto geográfico de la "Ubicación Objetivo" en el mercado.`,
-    `\n--- DATOS DEL NEGOCIO ---`,
-    datos.ubicacion ? `Ubicación Objetivo: ${datos.ubicacion}` : "",
-    datos.contexto ? `Contexto aportado: ${datos.contexto}` : "",
+    `Instrucciones: Toma los siguientes datos (delimitados por <user_input>) y genera el análisis JSON solicitado.`,
+    `<user_input>`,
+    `--- DATOS DEL NEGOCIO ---`,
+    datos.ubicacion ? `Ubicación Objetivo: ${sanitizarTag(datos.ubicacion)}` : "",
+    datos.contexto ? `Contexto aportado: ${sanitizarTag(datos.contexto)}` : "",
     "Respuestas estructuradas:",
-    ...datos.respuestasCliente.map((p: string) => `- ${p}`),
-    `--- FIN DE LOS DATOS ---`
+    ...datos.respuestasCliente.map((p: string) => `- ${sanitizarTag(p)}`),
+    `--- FIN DE LOS DATOS ---`,
+    `</user_input>`
   ].filter(Boolean).join("\n");
 }

@@ -1,5 +1,8 @@
-// src/config/env.ts
-// Carga y valida todas las variables de entorno al arrancar el servidor
+/**
+ * @module ConfigEnv
+ * @description Centraliza la carga y validación de todas las variables de entorno.
+ * Proporciona métodos seguros para obtener strings y números, lanzando errores si faltan campos requeridos.
+ */
 
 const getEnv = (key: string, defaultValue?: string): string => {
   const value = process.env[key] ?? defaultValue;
@@ -19,6 +22,10 @@ const getEnvNumber = (key: string, defaultValue: number): number => {
   return parsed;
 };
 
+/**
+ * Objeto de configuración global de la aplicación.
+ * @readonly
+ */
 export const config = {
   server: {
     port: getEnvNumber("PORT", 3000),

@@ -17,7 +17,26 @@ El backend está construido con **Bun** y **Hono**, diseñado para respuestas de
 - **Framework**: Hono
 - **Lenguaje**: TypeScript
 - **Orquestación de IA**: SDK de OpenRouter
-- **Seguridad de Datos**: Validación y sanitización de entradas basada en middleware.
+## 🛡️ Seguridad y Robustez
+
+- **Prevención de Prompt Injection**: Implementa *Prompt Fencing* (etiquetado `<user_input>`) y validación de temas mediante un auditor de IA dedicado para prevenir manipulaciones.
+- **Rate Limiting**: Protección contra abusos mediante limitación de peticiones por IP usando Redis.
+- **Validación Estricta**: Middleware de validación que asegura que los datos de entrada cumplan con los esquemas requeridos antes de procesar cualquier llamada a la IA.
+- **Sanitización**: Limpieza de caracteres de control y etiquetas maliciosas en las entradas del usuario.
+
+## 📦 Despliegue con Docker
+
+El backend incluye configuración para producción y desarrollo mediante Docker.
+
+```bash
+# Iniciar API y Redis localmente
+docker-compose up --build
+```
+
+### Notas de Seguridad en Docker:
+- Ejecución con usuario no-root (`bun`).
+- Aislamiento de red para Redis (no expuesto al exterior).
+- Límites de recursos (RAM) configurados para evitar denegación de servicio.
 
 ## ⚙️ Características Arquitectónicas Clave
 
@@ -26,9 +45,10 @@ El backend está construido con **Bun** y **Hono**, diseñado para respuestas de
 - **Llamadas de IA Resilientes**: Implementa patrones de reintento con backoff exponencial para estabilidad ante dependencias de APIs externas.
 - **Validación de JSON Estructurado**: Asegura que todas las respuestas de la IA se ajusten a esquemas JSON estrictos antes de ser enviadas.
 
-## 🛠️ Comandos
+## 🛠️ Comandos Locales
 
 Desde el directorio `backend`:
 - `bun install`: Instala las dependencias.
 - `bun run dev`: Inicia el servidor de desarrollo local en modo watch.
+- `bun run start`: Ejecuta la aplicación en modo producción.
 - `bun run test`: Ejecuta las pruebas del backend (si están disponibles).
