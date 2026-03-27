@@ -41,6 +41,10 @@ export const config = {
     max: getEnvNumber("RATE_LIMIT_MAX", 30),
     windowMs: getEnvNumber("RATE_LIMIT_WINDOW_MS", 60_000),
   },
+  businessDelay: {
+    initialDelayMs: getEnvNumber("BUSINESS_INITIAL_DELAY_MS", 5000),
+    windowMs: getEnvNumber("BUSINESS_WINDOW_MS", 180_000), // 3 minutos
+  },
   cors: {
     allowedOrigins: getEnv("ALLOWED_ORIGINS", process.env["NODE_ENV"] === "production" ? "https://midominio.com" : "*"),
   },

@@ -11,8 +11,9 @@ export const redisClient = new Redis(config.redis.url, {
   lazyConnect: true,
   maxRetriesPerRequest: 1, // Fallar rápido en vez de pausar la API
   retryStrategy(times) {
-    if (times > 3) {
-      return null; // Deja de reintentar si falla mucho
+    if (times > 10) {
+      // Intentar reconectar indefinidamente o con un límite más alto en prod
+      return Math.min(times * 100, 5000);
     }
     return Math.min(times * 50, 2000); // Backoff progresivo de reconexión
   },

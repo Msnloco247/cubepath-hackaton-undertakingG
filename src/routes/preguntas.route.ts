@@ -7,6 +7,7 @@
 import { Hono } from "hono";
 import { validatePreguntasMiddleware } from "../middleware/validate.middleware.ts";
 import { rateLimitMiddleware } from "../middleware/rateLimit.middleware.ts";
+import { businessAnalysisDelayMiddleware } from "../middleware/businessAnalysisDelay.middleware.ts";
 import { 
   verificarTemaEmprendimiento, 
   generarFodaYZona, 
@@ -47,7 +48,7 @@ async function verificarOAbortar(c: any, datos: PreguntasRequest) {
 // ─── POST /api/preguntas/foda-zona ────────────────────────────────────────────
 preguntasRoute.post(
   "/foda-zona",
-  rateLimitMiddleware,
+  businessAnalysisDelayMiddleware,
   validatePreguntasMiddleware,
   async (c) => {
     const datos = c.get("preguntasValidadas");
@@ -72,7 +73,7 @@ preguntasRoute.post(
 // ─── POST /api/preguntas/producto-estrategia ──────────────────────────────────
 preguntasRoute.post(
   "/producto-estrategia",
-  rateLimitMiddleware,
+  businessAnalysisDelayMiddleware,
   validatePreguntasMiddleware,
   async (c) => {
     const datos = c.get("preguntasValidadas");
@@ -97,7 +98,7 @@ preguntasRoute.post(
 // ─── POST /api/preguntas/pasos-presupuesto ────────────────────────────────────
 preguntasRoute.post(
   "/pasos-presupuesto",
-  rateLimitMiddleware,
+  businessAnalysisDelayMiddleware,
   validatePreguntasMiddleware,
   async (c) => {
     const datos = c.get("preguntasValidadas");
