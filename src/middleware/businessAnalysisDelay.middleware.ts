@@ -1,23 +1,23 @@
 /**
  * @module BusinessAnalysisDelayMiddleware
- * @description Middleware para aplicar un delay inicial y un bloqueo de 3 minutos por IP 
- * en los endpoints de análisis de negocio.
+ * @description Middleware para aplicar un delay inicial y permitir ráfagas de 3 peticiones 
+ * (una por cada endpoint) cada 3 minutos por IP.
  */
 
 import type { MiddlewareHandler } from "hono";
 import { config } from "../config/env.ts";
 import { redisClient, getRedisStatus } from "../config/redis.ts";
 import { RateLimitError } from "../types/errors.ts";
-import type { RateLimitEntry } from "../types/index.ts";
 
 // Almacén en memoria (Fallback de Redis)
-const businessMemoryStore = new Map<string, number>();
+// Guardamos { count, resetAt }
+const businessMemoryStore = new Map<string, { count: number, resetAt: number }>();
 
 // Limpieza de memoria (cada 5 minutos)
 setInterval(() => {
     const now = Date.now();
-    for (const [key, lastRequestAt] of businessMemoryStore.entries()) {
-        if (now - lastRequestAt > config.businessDelay.windowMs) {
+    for (const [key, entry] of businessMemoryStore.entries()) {
+        if (now > entry.resetAt) {
             businessMemoryStore.delete(key);
         }
     }
@@ -25,8 +25,9 @@ setInterval(() => {
 
 /**
  * @description Middleware que implementa:
- * 1. Delay inicial configurado (ej: 5s).
- * 2. Bloqueo de 3 minutos para peticiones subsiguientes de la misma IP.
+ * 1. Bypass si no es producción.
+ * 2. Delay inicial configurado (ej: 5s) para CADA petición permitida.
+ * 3. Permite hasta 3 peticiones en una ráfaga, luego bloquea por 3 minutos.
  */
 export const businessAnalysisDelayMiddleware: MiddlewareHandler = async (c, next) => {
     // Solo aplicar delay en producción
@@ -45,40 +46,49 @@ export const businessAnalysisDelayMiddleware: MiddlewareHandler = async (c, next
         c.req.header("x-real-ip") ??
         "unknown";
 
-    const redisKey = `business_lockout:${ip}`;
+    const redisKey = `business_burst:${ip}`;
 
     try {
-        let lastRequestAt: number | null = null;
+        let currentCount = 0;
+        let ttlMs = windowMs;
 
         if (getRedisStatus()) {
-            const val = await redisClient.get(redisKey);
-            lastRequestAt = val ? parseInt(val, 10) : null;
+            // Usar Redis INCR para contar ráfagas
+            currentCount = await redisClient.incr(redisKey);
+            if (currentCount === 1) {
+                await redisClient.pexpire(redisKey, windowMs);
+            } else {
+                const ttl = await redisClient.pttl(redisKey);
+                ttlMs = ttl > 0 ? ttl : windowMs;
+            }
         } else {
-            lastRequestAt = businessMemoryStore.get(ip) ?? null;
+            // Fallback en memoria
+            let entry = businessMemoryStore.get(ip);
+            if (!entry || now > entry.resetAt) {
+                entry = { count: 1, resetAt: now + windowMs };
+                businessMemoryStore.set(ip, entry);
+            } else {
+                entry.count += 1;
+            }
+            currentCount = entry.count;
+            ttlMs = entry.resetAt - now;
         }
 
-        // Verificar bloqueo de 3 minutos
-        if (lastRequestAt && (now - lastRequestAt < windowMs)) {
-            const retryAfter = Math.ceil((windowMs - (now - lastRequestAt)) / 1000);
+        // Bloquear si excede 3 peticiones (una ráfaga completa de análisis)
+        if (currentCount > 3) {
+            const retryAfter = Math.ceil(ttlMs / 1000);
             c.header("Retry-After", String(retryAfter));
-            throw new RateLimitError(`Límite de análisis excedido. Debes esperar ${retryAfter} segundos para realizar otro análisis.`);
+            throw new RateLimitError(`Límite de análisis excedido. Has alcanzado el máximo de 3 consultas. Por favor, espera ${retryAfter} segundos.`);
         }
 
-        // Si es una petición permitida (primera o después del lockout):
-        // 1. Registrar el timestamp actual para el bloqueo
-        if (getRedisStatus()) {
-            await redisClient.set(redisKey, String(now), "PX", windowMs);
-        } else {
-            businessMemoryStore.set(ip, now);
-        }
-
-        // 2. Aplicar delay inicial (ej: 5 segundos)
+        // Todas las peticiones permitidas (dentro de la ráfaga de 3) experimentan el delay inicial
+        // Esto armoniza el comportamiento si se llaman en paralelo
         await new Promise(resolve => setTimeout(resolve, initialDelayMs));
 
         await next();
     } catch (err) {
         if (err instanceof RateLimitError) throw err;
         console.error("[BusinessDelayMiddleware] Error:", err);
-        await next(); // Dejar pasar si hay error crítico en el delay
+        await next();
     }
 };
