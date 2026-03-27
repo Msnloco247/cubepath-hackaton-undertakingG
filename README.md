@@ -1,54 +1,50 @@
-# UndertakingG — Backend (Bun/Hono)
+# ⚙️ UndertakingG — Backend API (Bun & Hono)
 
-Este es el servicio de API impulsado por IA de la plataforma **UndertakingG**. Proporciona una orquestación especializada para modelos generativos con el fin de generar análisis estratégicos estructurados para emprendedores.
+Este es el motor de inteligencia de negocios de la plataforma **UndertakingG**. Proporciona una orquestación avanzada de modelos de lenguaje para generar análisis estratégicos estructurados y planes de acción para emprendedores.
 
-## 🚀 Descripción de la API
+---
 
-El backend está construido con **Bun** y **Hono**, diseñado para respuestas de baja latencia y procesamiento de datos altamente estructurados.
+## 🚀 Capacidades de la API
 
-### Endpoints Principales del Servicio:
-- **`POST /api/preguntas/foda-zona`**: Análisis FODA (SWOT) y evaluación del mercado regional.
-- **`POST /api/preguntas/producto-estrategia`**: Propuesta de valor, audiencia y estrategias por plazos.
-- **`POST /api/preguntas/pasos-presupuesto`**: Hoja de ruta operativa y legal con presupuestos estructurados.
+El backend está diseñado para ofrecer respuestas de baja latencia y alta confiabilidad, utilizando un sistema de validación de múltiples capas.
+
+### Endpoints Principales:
+- **`POST /api/preguntas/foda-zona`**: Genera un análisis FODA detallado y contextualizado geográficamente.
+- **`POST /api/preguntas/producto-estrategia`**: Define la propuesta de valor y las estrategias de penetración de mercado.
+- **`POST /api/preguntas/pasos-presupuesto`**: Crea una hoja de ruta operativa cronometrada con estimaciones de costos.
+
+---
 
 ## 🛠️ Stack Tecnológico
 
-- **Runtime**: Bun
-- **Framework**: Hono
+- **Runtime**: [Bun](https://bun.sh/)
+- **Framework**: [Hono](https://hono.dev/)
 - **Lenguaje**: TypeScript
-- **Orquestación de IA**: SDK de OpenRouter
-## 🛡️ Seguridad y Robustez
+- **Cache/Rate Limit**: Redis
+- **IA**: OpenRouter SDK
 
-- **Prevención de Prompt Injection**: Implementa *Prompt Fencing* (etiquetado `<user_input>`) y validación de temas mediante un auditor de IA dedicado para prevenir manipulaciones.
-- **Rate Limiting**: Protección contra abusos mediante limitación de peticiones por IP usando Redis.
-- **Validación Estricta**: Middleware de validación que asegura que los datos de entrada cumplan con los esquemas requeridos antes de procesar cualquier llamada a la IA.
-- **Sanitización**: Limpieza de caracteres de control y etiquetas maliciosas en las entradas del usuario.
+---
 
-## 📦 Despliegue con Docker
+## 🛡️ Características de Seguridad
 
-El backend incluye configuración para producción y desarrollo mediante Docker.
+- **Protección de Prompts**: Implementa técnicas de "Prompt Fencing" para evitar manipulaciones de IA (*Prompt Injection*).
+- **Control de Acceso**: Middleware de Rate Limiting basado en Redis para prevenir abusos por IP.
+- **Validación de Esquema**: Uso estricto de tipos y validación de JSON para asegurar que la salida de la IA sea siempre procesable.
+- **Auditoría de Contenido**: Filtra y valida que las peticiones estén relacionadas exclusivamente con el ámbito empresarial.
 
+---
+
+## 📦 Despliegue y Desarrollo
+
+### Configuración con Docker
 ```bash
-# Iniciar API y Redis localmente
-docker-compose up --build
+docker-compose up --build -d
 ```
 
-### Notas de Seguridad en Docker:
-- Ejecución con usuario no-root (`bun`).
-- Aislamiento de red para Redis (no expuesto al exterior).
-- Límites de recursos (RAM) configurados para evitar denegación de servicio.
+### Configuración Manual
+1.  Instala las dependencias: `bun install`
+2.  Configura las variables de entorno en un archivo `.env` (basado en `.env.example`).
+3.  Inicia en desarrollo: `bun run dev`
+4.  Modo producción: `bun run start`
 
-## ⚙️ Características Arquitectónicas Clave
 
-- **Separación de Prompts**: Los prompts están aislados estratégicamente para asegurar una alta confiabilidad del modelo y eficiencia en el uso de tokens.
-- **Selección Dinámica de Modelo de IA**: Construido para consumir modelos específicos vía configuración para optimizar costo y rendimiento.
-- **Llamadas de IA Resilientes**: Implementa patrones de reintento con backoff exponencial para estabilidad ante dependencias de APIs externas.
-- **Validación de JSON Estructurado**: Asegura que todas las respuestas de la IA se ajusten a esquemas JSON estrictos antes de ser enviadas.
-
-## 🛠️ Comandos Locales
-
-Desde el directorio `backend`:
-- `bun install`: Instala las dependencias.
-- `bun run dev`: Inicia el servidor de desarrollo local en modo watch.
-- `bun run start`: Ejecuta la aplicación en modo producción.
-- `bun run test`: Ejecuta las pruebas del backend (si están disponibles).

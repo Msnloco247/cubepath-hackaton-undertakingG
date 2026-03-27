@@ -29,6 +29,12 @@ setInterval(() => {
  * 2. Bloqueo de 3 minutos para peticiones subsiguientes de la misma IP.
  */
 export const businessAnalysisDelayMiddleware: MiddlewareHandler = async (c, next) => {
+    // Solo aplicar delay en producción
+    if (!config.server.isProduction) {
+        await next();
+        return;
+    }
+
     const { initialDelayMs, windowMs } = config.businessDelay;
     const now = Date.now();
 

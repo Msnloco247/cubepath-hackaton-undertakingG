@@ -29,6 +29,7 @@ const getEnvNumber = (key: string, defaultValue: number): number => {
 export const config = {
   server: {
     port: getEnvNumber("PORT", 3000),
+    isProduction: process.env["NODE_ENV"] === "production",
   },
   openrouter: {
     apiKey: getEnv("OPENROUTER_API_KEY"),

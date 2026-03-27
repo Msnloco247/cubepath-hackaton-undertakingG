@@ -53,8 +53,6 @@ console.log(`
 ║  Modelo: ${config.openrouter.model.padEnd(38)}║
 ╠══════════════════════════════════════════════════╣
 ║  Endpoints disponibles:                          ║
-║    GET  /                 → Info del API         ║
-║    GET  /health           → Estado del servidor  ║
 ║    POST /api/preguntas/foda-zona                 ║
 ║    POST /api/preguntas/producto-estrategia       ║
 ║    POST /api/preguntas/pasos-presupuesto         ║
